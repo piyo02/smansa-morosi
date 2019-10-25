@@ -34,10 +34,6 @@ class M_ulangan extends MY_Model
     return FALSE;
   }
 
-  public function create_ref($data)
-  {
-    return $this->db->insert_batch('tabel_referensi_soal', $data);
-  }
   /**
    * update
    *
@@ -73,30 +69,33 @@ class M_ulangan extends MY_Model
    * @return bool
    * @author madukubah
    */
+
+
+  //  perbaiki
   public function delete($data_param)
   {
-    $this->db->where('ulangan_id', $data_param['id']);
-    if ($this->db->get('tabel_hasil_ulangan')->result()) {
-      $this->set_error("Ulangan Gagal Dihapus untuk menjaga data hasil ulangan"); //('group_delete_successful');
+    if (!$this->delete_foreign($data_param, ['M_hasil_ulangan', 'M_jawaban_siswa', 'M_kerja', 'M_referensi'])) {
+      $this->set_error("gagal"); //('group_delete_unsuccessful');
+      return FALSE;
+    }
+    //foreign
+    $this->db->trans_begin();
+
+    $this->db->delete($this->table, $data_param);
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+
+      $this->set_error("gagal"); //('group_delete_unsuccessful');
       return FALSE;
     }
 
-    $this->db->where('ulangan_id', $data_param['id']);
-    if (!$this->db->delete('tabel_referensi_soal'))
-      return FALSE;
-
-    $this->db->where('ulangan_id', $data_param['id']);
-    if (!$this->db->delete('tabel_jawaban_siswa'))
-      return FALSE;
-
-    $this->db->where($data_param);
-    if (!$this->db->delete('tabel_ulangan'))
-      return FALSE;
-
+    $this->db->trans_commit();
 
     $this->set_message("Ulangan Berhasil"); //('group_delete_successful');
     return TRUE;
   }
+
+
 
   public function get_course_from_ulangan($data_param)
   {
@@ -117,12 +116,12 @@ class M_ulangan extends MY_Model
     );
     $this->db->join(
       'table_users',
-      'table_users.id = tabel_ulangan.creator_id',
+      'table_users.id = tabel_ulangan.user_id',
       'join'
     );
     $this->db->group_by('courses.id');
     $this->db->where($data_param);
-    return $this->db->get('tabel_ulangan');
+    return $this->db->get($this->table);
   }
 
   public function get_task_by_id($ulangan_id)
@@ -150,13 +149,15 @@ class M_ulangan extends MY_Model
     );
     $this->db->join(
       'table_users',
-      'table_users.id = tabel_ulangan.creator_id',
+      'table_users.id = tabel_ulangan.user_id',
       'join'
     );
     $this->db->where('tabel_ulangan.id', $ulangan_id);
-    return $this->db->get('tabel_ulangan');
+    return $this->db->get($this->table);
   }
 
+
+  // perbaiki
   public function get_referensi_soal_by_id($id)
   {
     $this->db->select('bank_soal.id');
@@ -190,8 +191,8 @@ class M_ulangan extends MY_Model
         'tabel_hasil_ulangan.ulangan_id = tabel_ulangan.id',
         'left'
       );
-      $this->db->where('user_id', $user_id);
-      $this->db->or_where('user_id is null');
+      $this->db->where('tabel_hasil_ulangan.user_id', $user_id);
+      $this->db->or_where('tabel_hasil_ulangan.user_id is null');
     }
     $this->db->join(
       'classes',
@@ -207,48 +208,15 @@ class M_ulangan extends MY_Model
     $this->db->where($data_param);
     if ($limit)
       $this->db->limit($limit);
-    return $this->db->get('tabel_ulangan');
+    return $this->db->get($this->table);
   }
 
-  public function get_num_type($id, $type1, $type2 = null)
-  {
-    $this->db->select('DISTINCT(tabel_soal.id)');
-    $this->db->select('tabel_jawaban.type');
-    $this->db->join(
-      'tabel_jawaban',
-      'tabel_jawaban.soal_id = tabel_soal.id',
-      'join'
-    );
-    $this->db->where('tabel_soal.bank_soal_id', $id);
-    if ($type2 == null)
-      $this->db->where('tabel_jawaban.type', $type1);
-    else
-      $this->db->where('(tabel_jawaban.type = "' . $type1 . '" OR tabel_jawaban.type = "' . $type2 . '")');
-    return $this->db->get('tabel_soal');
-  }
+
 
   public function get_max_id()
   {
     $this->db->select_max('id');
-    return $this->db->get('tabel_ulangan');
-  }
-
-  public function get_course($id)
-  {
-    $this->db->select('classes.name AS class_name');
-    $this->db->select('courses.name AS name');
-    $this->db->join(
-      'tabel_ulangan',
-      'tabel_ulangan.class_id = classes.id',
-      'left'
-    );
-    $this->db->join(
-      'courses',
-      'courses.id = classes.course_id',
-      'left'
-    );
-    $this->db->where('tabel_ulangan.id', $id);
-    return $this->db->get('classes');
+    return $this->db->get($this->table);
   }
 
   public function get_class_teacher($param)
@@ -270,13 +238,22 @@ class M_ulangan extends MY_Model
     $this->db->group_by('class_id');
     return $this->db->get($this->table);
   }
+
+
   public function list_ulangan_id()
   {
-    $param['creator_id'] = $this->session->userdata('user_id');
+    $param['user_id'] = $this->session->userdata('user_id');
     $ulangan = $this->get_ulangan($param)->result();
     foreach ($ulangan as $key => $value) {
       $id[] = $value->id;
     }
     return $id;
+  }
+
+  public function get_kkm($id)
+  {
+    $this->db->select('kkm');
+    $this->db->where('id', $id);
+    return $this->db->get($this->table);
   }
 }

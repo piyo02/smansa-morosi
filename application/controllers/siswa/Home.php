@@ -18,7 +18,9 @@ class Home extends Siswa_Controller
 	{
 		$data_param['class_id'] = $this->session->userdata('class_id');
 
+		$alert = $this->session->flashdata('alert');
 		$this->data['rows'] = $this->m_ulangan->get_ulangan($data_param, $this->session->userdata('user_id'))->result();
+		$this->data["alert"] = (isset($alert)) ? $alert : NULL;
 		$this->data["page_title"] = "Beranda";
 		$this->render("siswa/dashboard/content");
 	}

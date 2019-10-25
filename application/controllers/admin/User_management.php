@@ -74,9 +74,9 @@ class User_management extends Admin_Controller
 				'class_id' => 2,
 			);
 		}
-		if ($this->form_validation->run() === TRUE && ($user_id =  $this->ion_auth_model->register($identity, $password, $email, $additional_data, $group_id))) {
+		if ($this->form_validation->run() === TRUE && ($user_id =  $this->ion_auth->register($identity, $password, $email, $additional_data, $group_id))) {
 
-			$this->session->set_flashdata('alert', $this->alert->set_alert(Alert::SUCCESS, $this->ion_auth_model->messages()));
+			$this->session->set_flashdata('alert', $this->alert->set_alert(Alert::SUCCESS, $this->ion_auth->messages()));
 			redirect(site_url($this->current_page));
 		} else {
 			$this->data['message'] = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('message')));

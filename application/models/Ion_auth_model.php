@@ -1600,6 +1600,14 @@ class Ion_auth_model extends MY_Model
 	 */
 	public function delete_user($id)
 	{
+		$this->set_join_key('user_id');
+		$data_param['id'] = $id;
+		//delete_foreign( $data_param. $models[]  )
+		if (!$this->delete_foreign($data_param, ['M_teacher_profile', 'M_bank_soal', 'M_ulangan', 'M_teacher', 'm_student_profile', 'm_hasil_ulangan', 'm_jawaban_siswa', 'm_kerja'])) {
+			$this->set_error("gagal"); //('group_delete_unsuccessful');
+			return FALSE;
+		}
+
 		$this->trigger_events('pre_delete_user');
 
 		$this->db->trans_begin();

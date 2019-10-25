@@ -1,14 +1,13 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class M_jawaban_siswa extends MY_Model
+class M_kerja extends MY_Model
 {
-  protected $table = "tabel_jawaban_siswa";
+  protected $table = "tabel_kerja";
 
   function __construct()
   {
     parent::__construct($this->table);
-    // parent::set_join_key('group_id');
   }
 
   /**
@@ -18,9 +17,20 @@ class M_jawaban_siswa extends MY_Model
    * @return static
    * @author madukubah
    */
-  public function insert_batch_soal($data)
+  public function create($data)
   {
-    return $this->db->insert_batch($this->table, $data);
+    // Filter the data passed
+    $data = $this->_filter_data($this->table, $data);
+
+    $this->db->insert($this->table, $data);
+    $id = $this->db->insert_id($this->table . '_id_seq');
+
+    if (isset($id)) {
+      $this->set_message("berhasil");
+      return $id;
+    }
+    $this->set_error("gagal");
+    return FALSE;
   }
   /**
    * update
@@ -81,37 +91,36 @@ class M_jawaban_siswa extends MY_Model
   }
 
   /**
+   * group
+   *
+   * @param int|array|null $id = id_groups
+   * @return static
+   * @author madukubah
+   */
+  public function group($id = NULL)
+  {
+    if (isset($id)) {
+      $this->where($this->table . '.id', $id);
+    }
+
+    $this->limit(1);
+    $this->order_by($this->table . '.id', 'desc');
+
+    $this->groups();
+
+    return $this;
+  }
+  /**
    * groups
    *
    *
    * @return static
    * @author madukubah
    */
-  public function get_soal_id($data_param)
+  public function groups()
   {
-    $this->db->select('id');
-    $this->db->select('soal_id');
-    $this->db->select('option');
-    $this->db->select('jawaban');
-    $this->db->select('uncertain');
-    $this->db->select('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
-  }
 
-  public function get_skor($data_param)
-  {
-    $this->db->select_sum('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
-  }
-
-  public function get_jawaban_siswa_by_id($data_param)
-  {
-    $this->db->select('id');
-    $this->db->select('jawaban');
-    $this->db->select('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
+    $this->order_by($this->table . '.id', 'asc');
+    return $this->fetch_data();
   }
 }

@@ -9,7 +9,7 @@ class M_class extends MY_Model
   function __construct()
   {
     parent::__construct($this->table);
-    parent::set_join_key('classes_id');
+    parent::set_join_key('class_id');
   }
 
   /**
@@ -72,7 +72,7 @@ class M_class extends MY_Model
   {
     //foreign
     //delete_foreign( $data_param. $models[]  )
-    if (!$this->delete_foreign($data_param, ['m_ulangan'])) {
+    if (!$this->delete_foreign($data_param, ['m_ulangan', 'm_student_profile', 'm_bank_soal'])) {
       $this->set_error("gagal"); //('menu_delete_unsuccessful');
       return FALSE;
     }
@@ -99,6 +99,7 @@ class M_class extends MY_Model
     $this->db->select('classes.description');
     if ($data_param)
       $this->db->where($data_param);
+    $this->db->order_by('name');
     return $this->db->get($this->table);
   }
 
@@ -111,5 +112,23 @@ class M_class extends MY_Model
       $list[$course->id] = $course->name;
     }
     return $list;
+  }
+
+  public function get_course($id)
+  {
+    $this->db->select('classes.name AS class_name');
+    $this->db->select('courses.name AS name');
+    $this->db->join(
+      'tabel_ulangan',
+      'tabel_ulangan.class_id = classes.id',
+      'left'
+    );
+    $this->db->join(
+      'courses',
+      'courses.id = classes.course_id',
+      'left'
+    );
+    $this->db->where('tabel_ulangan.id', $id);
+    return $this->db->get($this->table);
   }
 }

@@ -35,9 +35,6 @@ class Auth extends Public_Controller
                     redirect(site_url('/admin'));
                 if ($this->ion_auth->is_student())
                     redirect(site_url('/siswa/home'));
-                if ($this->ion_auth->is_uadmin())
-                    redirect(site_url('/uadmin'));
-
                 redirect(site_url('/user'), 'refresh'); // use redirects instead of loading views for compatibility with MY_Controller libraries
             } else {
                 // if the login was un-successful

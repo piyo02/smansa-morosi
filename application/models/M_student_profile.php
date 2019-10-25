@@ -8,7 +8,7 @@ class M_student_profile extends MY_Model
   function __construct()
   {
     parent::__construct($this->table);
-    parent::set_join_key('class_id');
+    // parent::set_join_key('class_id');
   }
 
   /**

@@ -1,9 +1,9 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class M_jawaban_siswa extends MY_Model
+class M_teacher_profile extends MY_Model
 {
-  protected $table = "tabel_jawaban_siswa";
+  protected $table = "teacher_profile";
 
   function __construct()
   {
@@ -18,9 +18,20 @@ class M_jawaban_siswa extends MY_Model
    * @return static
    * @author madukubah
    */
-  public function insert_batch_soal($data)
+  public function create($data)
   {
-    return $this->db->insert_batch($this->table, $data);
+    // Filter the data passed
+    $data = $this->_filter_data($this->table, $data);
+
+    $this->db->insert($this->table, $data);
+    $id = $this->db->insert_id($this->table . '_id_seq');
+
+    if (isset($id)) {
+      $this->set_message("berhasil");
+      return $id;
+    }
+    $this->set_error("gagal");
+    return FALSE;
   }
   /**
    * update
@@ -48,6 +59,7 @@ class M_jawaban_siswa extends MY_Model
     $this->set_message("berhasil");
     return TRUE;
   }
+
   /**
    * delete
    *
@@ -80,37 +92,19 @@ class M_jawaban_siswa extends MY_Model
     return TRUE;
   }
 
-  /**
-   * groups
-   *
-   *
-   * @return static
-   * @author madukubah
-   */
-  public function get_soal_id($data_param)
+  public function get_profile($data_param)
   {
-    $this->db->select('id');
-    $this->db->select('soal_id');
-    $this->db->select('option');
-    $this->db->select('jawaban');
-    $this->db->select('uncertain');
-    $this->db->select('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
-  }
-
-  public function get_skor($data_param)
-  {
-    $this->db->select_sum('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
-  }
-
-  public function get_jawaban_siswa_by_id($data_param)
-  {
-    $this->db->select('id');
-    $this->db->select('jawaban');
-    $this->db->select('skor');
+    $this->db->select($this->table . '.id');
+    $this->db->select('edu_ladder.name');
+    $this->db->select('school_id');
+    $this->db->select('user_id');
+    $this->db->select('edu_ladder_id');
+    $this->db->select('nip');
+    $this->db->join(
+      'edu_ladder',
+      'edu_ladder.id = ' . $this->table . '.edu_ladder_id',
+      'join'
+    );
     $this->db->where($data_param);
     return $this->db->get($this->table);
   }

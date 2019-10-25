@@ -16,6 +16,8 @@ class Ulangan extends Users_Controller
         $this->load->model(array(
             'm_ulangan',
             'm_bank_soal',
+            'm_jawaban',
+            'm_referensi',
         ));
         $this->user_id = $this->session->userdata('user_id');
     }
@@ -23,7 +25,7 @@ class Ulangan extends Users_Controller
     {
         #################################################################3
         $table = $this->services->groups_table_config($this->current_page);
-        $data_param['creator_id'] = $this->user_id;
+        $data_param['user_id'] = $this->user_id;
         $table["rows"] = $this->m_ulangan->get_ulangan($data_param)->result();
         $table = $this->load->view('templates/tables/plain_table_12', $table, true);
         $this->data["contents"] = $table;
@@ -64,8 +66,8 @@ class Ulangan extends Users_Controller
         if ($this->form_validation->run() === TRUE) {
 
             $data['class_id']   = $this->input->post('class_id');
-            $data['creator_id'] = $this->session->userdata('user_id');
-            $data['course_id'] = $this->session->userdata('course_id');
+            $data['user_id'] = $this->session->userdata('user_id');
+            $data['course_id'] = $this->input->post('course_id');
             $data['nama']       = $this->input->post('nama');
             $data['waktu_mulai'] = strtotime($this->input->post('waktu_mulai'));
             $data['durasi']     = $this->input->post('durasi');
@@ -85,7 +87,7 @@ class Ulangan extends Users_Controller
                 ];
             }
 
-            if ($this->m_ulangan->create_ref($data_ref)) {
+            if ($this->m_referensi->create($data_ref)) {
                 $this->session->set_flashdata('alert', $this->alert->set_alert(Alert::SUCCESS, $this->m_ulangan->messages()));
             } else {
                 $this->session->set_flashdata('alert', $this->alert->set_alert(Alert::DANGER, $this->m_ulangan->errors()));

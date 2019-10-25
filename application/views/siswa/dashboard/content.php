@@ -47,6 +47,13 @@
             <h4 class="m-0 text-dark">Daftar Ulangan</h4>
         </div>
         <div class="row  justify-content-center">
+            <div class="col-12 row  justify-content-center">
+                <div class="col-4">
+                    <?php
+                    echo $alert;
+                    ?>
+                </div>
+            </div>
             <?php
             for ($i = 0; $i < count($rows); $i++) : ?>
                 <div class="col-3 ml-2">

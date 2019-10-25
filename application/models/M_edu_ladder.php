@@ -1,14 +1,14 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class M_jawaban_siswa extends MY_Model
+class M_edu_ladder extends MY_Model
 {
-  protected $table = "tabel_jawaban_siswa";
+  protected $table = "edu_ladder";
 
   function __construct()
   {
     parent::__construct($this->table);
-    // parent::set_join_key('group_id');
+    parent::set_join_key('edu_ladder_id');
   }
 
   /**
@@ -18,9 +18,20 @@ class M_jawaban_siswa extends MY_Model
    * @return static
    * @author madukubah
    */
-  public function insert_batch_soal($data)
+  public function create($data)
   {
-    return $this->db->insert_batch($this->table, $data);
+    // Filter the data passed
+    $data = $this->_filter_data($this->table, $data);
+
+    $this->db->insert($this->table, $data);
+    $id = $this->db->insert_id($this->table . '_id_seq');
+
+    if (isset($id)) {
+      $this->set_message("berhasil");
+      return $id;
+    }
+    $this->set_error("gagal");
+    return FALSE;
   }
   /**
    * update
@@ -48,18 +59,12 @@ class M_jawaban_siswa extends MY_Model
     $this->set_message("berhasil");
     return TRUE;
   }
-  /**
-   * delete
-   *
-   * @param array  $data_param
-   * @return bool
-   * @author madukubah
-   */
+
   public function delete($data_param)
   {
     //foreign
     //delete_foreign( $data_param. $models[]  )
-    if (!$this->delete_foreign($data_param)) {
+    if (!$this->delete_foreign($data_param, ['m_class', 'm_courses', 'm_teacher_profile'])) {
       $this->set_error("gagal"); //('group_delete_unsuccessful');
       return FALSE;
     }
@@ -80,38 +85,20 @@ class M_jawaban_siswa extends MY_Model
     return TRUE;
   }
 
-  /**
-   * groups
-   *
-   *
-   * @return static
-   * @author madukubah
-   */
-  public function get_soal_id($data_param)
+  public function get_edu_ladder()
   {
     $this->db->select('id');
-    $this->db->select('soal_id');
-    $this->db->select('option');
-    $this->db->select('jawaban');
-    $this->db->select('uncertain');
-    $this->db->select('skor');
-    $this->db->where($data_param);
+    $this->db->select('name');
     return $this->db->get($this->table);
   }
 
-  public function get_skor($data_param)
+  public function list_edu_ladder()
   {
-    $this->db->select_sum('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
-  }
-
-  public function get_jawaban_siswa_by_id($data_param)
-  {
-    $this->db->select('id');
-    $this->db->select('jawaban');
-    $this->db->select('skor');
-    $this->db->where($data_param);
-    return $this->db->get($this->table);
+    $lists = $this->get_edu_ladder()->result();
+    $select[] = '-- Pilih Jenjang Pendidikan --';
+    foreach ($lists as $key => $list) {
+      $select[$list->id] = $list->name;
+    }
+    return $select;
   }
 }

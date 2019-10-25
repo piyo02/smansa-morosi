@@ -9,7 +9,7 @@ class M_courses extends MY_Model
   function __construct()
   {
     parent::__construct($this->table);
-    parent::set_join_key('courses_id');
+    parent::set_join_key('course_id');
   }
 
   /**
@@ -85,7 +85,7 @@ class M_courses extends MY_Model
   {
     //foreign
     //delete_foreign( $data_param. $models[]  )
-    if (!$this->delete_foreign($data_param, ['m_ulangan'])) {
+    if (!$this->delete_foreign($data_param, ['m_ulangan', 'm_teacher', 'm_bank_soal'])) {
       $this->set_error("gagal"); //('menu_delete_unsuccessful');
       return FALSE;
     }
